@@ -12,8 +12,8 @@ class Configuracion(BaseSettings):
 
     # --- Groq (LLM) ---
     GROQ_API_KEY: str
-    GROQ_MODELO_PRINCIPAL: str = "llama3-70b-8192"
-    GROQ_MODELO_FALLBACK: str = "mixtral-8x7b-32768"
+    GROQ_MODELO_PRINCIPAL: str = "llama-3.3-70b-versatile"
+    GROQ_MODELO_FALLBACK: str = "llama-3.1-8b-instant"
 
     # --- Pinecone (Base de datos vectorial) ---
     PINECONE_API_KEY: str
