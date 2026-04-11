@@ -26,7 +26,7 @@ class HuggingFaceAPIEmbedding(BaseEmbedding):
         self._api_key = api_key
 
     def _call_api(self, inputs: list[str]) -> list[list[float]]:
-        url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{self.model_name}"
+        url = f"https://router.huggingface.co/hf-inference/models/{self.model_name}"
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json"
