@@ -52,6 +52,8 @@ app = FastAPI(
     lifespan=ciclo_vida,
 )
 
+# Obtener configuración para configurar CORS
+config = obtener_configuracion()
 # Limpiar la URL del frontend (quitar barra final si la tiene por accidente)
 frontend_url = config.FRONTEND_URL.rstrip("/")
 
