@@ -53,8 +53,9 @@ async def obtener_usuario_actual(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="El token ha expirado. Iniciá sesión nuevamente.",
         )
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
+        print(f"Error detallado de JWT: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token de autenticación inválido.",
+            detail=f"Token de autenticación inválido: {str(e)}",
         )
