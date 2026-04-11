@@ -52,11 +52,17 @@ app = FastAPI(
     lifespan=ciclo_vida,
 )
 
-# Configurar CORS para permitir requests del frontend
-config = obtener_configuracion()
+# Limpiar la URL del frontend (quitar barra final si la tiene por accidente)
+frontend_url = config.FRONTEND_URL.rstrip("/")
+
+# Configurar CORS siendo amigables con vercel y localhost
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[config.FRONTEND_URL],
+    allow_origins=[
+        frontend_url,
+        "https://petrochat.vercel.app",  # Fallback de seguridad
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
