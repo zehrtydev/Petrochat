@@ -12,3 +12,4 @@ llama-index-llms-groq
 PyJWT>=2.10.0
 httpx>=0.28.0
 pydantic-settings
+cryptography
