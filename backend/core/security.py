@@ -29,11 +29,16 @@ async def obtener_usuario_actual(
     token = credenciales.credentials
 
     try:
+        # DEPURACIÓN: Ver qué algoritmo viene realmente en el token
+        header = jwt.get_unverified_header(token)
+        print(f"DEBUG - JWT Header: {header}")
+
         # Decodificar y verificar el JWT usando el secreto de Supabase
+        # Agregamos HS384 y HS512 por si acaso, aunque Supabase suele usar HS256
         payload = jwt.decode(
             token,
             config.SUPABASE_JWT_SECRET,
-            algorithms=["HS256"],
+            algorithms=["HS256", "HS384", "HS512"],
             audience="authenticated",
         )
 
