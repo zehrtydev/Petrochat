@@ -9,7 +9,6 @@ pinecone
 llama-index
 llama-index-vector-stores-pinecone
 llama-index-llms-groq
-llama-index-embeddings-huggingface
 PyJWT>=2.10.0
 httpx>=0.28.0
 pydantic-settings

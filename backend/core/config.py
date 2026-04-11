@@ -23,6 +23,9 @@ class Configuracion(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_KEY: str
     SUPABASE_JWT_SECRET: str
+    
+    # --- HuggingFace ---
+    HUGGINGFACE_API_KEY: str
 
     # --- General ---
     FRONTEND_URL: str = "http://localhost:5173"
