@@ -24,7 +24,7 @@ export default function FileUpload({ onDocumentoSubido, onCerrar }) {
     setResultado(null)
 
     try {
-      const token = obtenerToken()
+      const token = await obtenerToken()
       const respuesta = await subirDocumento(archivo, token)
       setResultado(respuesta)
 

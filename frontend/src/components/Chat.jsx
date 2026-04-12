@@ -3,7 +3,7 @@
  * Muestra mensajes, input de texto, y maneja el streaming de respuestas.
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2, MessageSquare } from 'lucide-react'
 import Message from './Message'
 import { enviarMensaje, procesarStream } from '../services/api'
@@ -14,8 +14,10 @@ export default function Chat({ documentoActivo }) {
   const [mensajes, setMensajes] = useState([])
   const [inputTexto, setInputTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
+  const [errorGlobal, setErrorGlobal] = useState(null)
   const refFinal = useRef(null)
   const refInput = useRef(null)
+  const abortControllerRef = useRef(null)
 
   /* Auto-scroll al último mensaje */
   useEffect(() => {
@@ -27,19 +29,28 @@ export default function Chat({ documentoActivo }) {
     refInput.current?.focus()
   }, [])
 
-  async function manejarEnvio(e) {
+  /* Cleanup al desmontar - abortar streams activos */
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
+  const manejarEnvio = useCallback(async (e) => {
     e.preventDefault()
     const pregunta = inputTexto.trim()
     if (!pregunta || enviando) return
 
-    /* Agregar mensaje del usuario */
+    setErrorGlobal(null)
+    
     const mensajeUsuario = {
       id: Date.now(),
       rol: 'usuario',
       texto: pregunta,
     }
 
-    /* Agregar placeholder del bot con indicador de escritura */
     const idBot = Date.now() + 1
     const mensajeBot = {
       id: idBot,
@@ -53,17 +64,15 @@ export default function Chat({ documentoActivo }) {
     setEnviando(true)
 
     try {
-      const token = obtenerToken()
+      const token = await obtenerToken()
       const stream = await enviarMensaje(
         pregunta,
         documentoActivo?.id || null,
         token,
       )
 
-      /* Procesar el stream token por token */
       await procesarStream(
         stream,
-        /* onFragmento: agregar cada token al mensaje del bot */
         (fragmento) => {
           setMensajes(prev =>
             prev.map(m =>
@@ -73,7 +82,6 @@ export default function Chat({ documentoActivo }) {
             )
           )
         },
-        /* onFin: marcar como completado */
         () => {
           setMensajes(prev =>
             prev.map(m =>
@@ -82,12 +90,11 @@ export default function Chat({ documentoActivo }) {
           )
           setEnviando(false)
         },
-        /* onError: mostrar el error */
         (error) => {
           setMensajes(prev =>
             prev.map(m =>
               m.id === idBot
-                ? { ...m, texto: `❌ ${error}`, escribiendo: false }
+                ? { ...m, texto: `Error: ${error}`, escribiendo: false }
                 : m
             )
           )
@@ -98,20 +105,25 @@ export default function Chat({ documentoActivo }) {
       setMensajes(prev =>
         prev.map(m =>
           m.id === idBot
-            ? { ...m, texto: `❌ Error: ${error.message}`, escribiendo: false }
+            ? { ...m, texto: `Error: ${error.message}`, escribiendo: false }
             : m
         )
       )
       setEnviando(false)
     }
-  }
+  }, [inputTexto, enviando, documentoActivo, obtenerToken])
 
   return (
     <div className="flex flex-col h-full">
       {/* Área de mensajes */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        {errorGlobal && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {errorGlobal}
+          </div>
+        )}
+        
         {mensajes.length === 0 ? (
-          /* Estado vacío */
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
                  style={{ backgroundColor: 'rgba(50,65,88,0.08)' }}>
@@ -160,6 +172,7 @@ export default function Chat({ documentoActivo }) {
               ? 'Escribí tu pregunta sobre el documento...'
               : 'Seleccioná un documento para empezar...'}
             disabled={enviando}
+            maxLength={2000}
             className="input-field flex-1"
           />
           <button

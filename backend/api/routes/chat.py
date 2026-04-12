@@ -4,18 +4,24 @@ Recibe preguntas del usuario y responde usando el contexto de los documentos.
 Soporta streaming (Server-Sent Events).
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import json
+import logging
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 from core.security import obtener_usuario_actual
+from core.rate_limit import limiter
 from services.rag_pipeline import consultar_rag
 from models.schemas import SolicitudChat
-import json
+from utils.validacion import sanitizar_pregunta
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["Chat"])
 
 
 @router.post("/chat")
+@limiter.limit("20/minute")
 async def chat(
+    request: Request,
     solicitud: SolicitudChat,
     usuario: dict = Depends(obtener_usuario_actual),
 ):
@@ -30,7 +36,8 @@ async def chat(
     """
     user_id = usuario["user_id"]
 
-    if not solicitud.pregunta.strip():
+    pregunta_limpia = sanitizar_pregunta(solicitud.pregunta)
+    if not pregunta_limpia:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="La pregunta no puede estar vacía.",
@@ -40,23 +47,23 @@ async def chat(
         """Generador que envía la respuesta token por token en formato SSE."""
         try:
             async for fragmento in consultar_rag(
-                pregunta=solicitud.pregunta,
+                pregunta=pregunta_limpia,
                 user_id=user_id,
                 document_id=solicitud.document_id,
             ):
                 if fragmento:
-                    # Formato SSE: data: {json}\n\n
                     dato = json.dumps({"texto": fragmento}, ensure_ascii=False)
                     yield f"data: {dato}\n\n"
 
-            # Señal de fin del stream
             yield f"data: {json.dumps({'fin': True})}\n\n"
 
+        except RuntimeError as e:
+            logger.error(f"Error de generación RAG: {e}")
+            error = json.dumps({"error": str(e)}, ensure_ascii=False)
+            yield f"data: {error}\n\n"
         except Exception as e:
-            error = json.dumps(
-                {"error": f"Error al generar respuesta: {str(e)}"},
-                ensure_ascii=False,
-            )
+            logger.exception("Error inesperado en chat stream")
+            error = json.dumps({"error": "Error interno del servidor"}, ensure_ascii=False)
             yield f"data: {error}\n\n"
 
     return StreamingResponse(

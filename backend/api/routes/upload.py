@@ -3,23 +3,45 @@ Rutas de subida de documentos.
 Recibe archivos PDF/DOCX, los procesa y guarda en el sistema RAG.
 """
 
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
-from supabase import create_client
+import os
+import re
+import uuid
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status, Request
 from core.security import obtener_usuario_actual
 from core.config import obtener_configuracion
+from core.service_registry import ServiceRegistry
+from core.rate_limit import limiter
 from services.rag_pipeline import procesar_documento
 from models.schemas import RespuestaSubida
+from utils.files import obtener_extension, validar_extension_archivo
+
+
+def sanitizar_nombre_archivo(filename: str, extension: str) -> str:
+    base = os.path.basename(filename)
+    base = re.sub(r'[^\w\s.-]', '', base)
+    base = base.strip('. ')
+    if not base:
+        base = f"document_{uuid.uuid4().hex[:8]}"
+    else:
+        ext_actual = obtener_extension(base)
+        if ext_actual == extension:
+            return base
+    return f"{base}.{extension}"
 
 router = APIRouter(prefix="/api", tags=["Documentos"])
 
-# Extensiones permitidas
-EXTENSIONES_PERMITIDAS = {"pdf", "docx"}
-# Tamaño máximo: 20MB
 TAMANO_MAXIMO = 20 * 1024 * 1024
+
+MIME_TYPES = {
+    "pdf": "application/pdf",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
 
 
 @router.post("/subir", response_model=RespuestaSubida)
+@limiter.limit("5/minute")
 async def subir_documento(
+    request: Request,
     archivo: UploadFile = File(...),
     usuario: dict = Depends(obtener_usuario_actual),
 ):
@@ -36,15 +58,14 @@ async def subir_documento(
     config = obtener_configuracion()
     user_id = usuario["user_id"]
 
-    # --- Validar archivo ---
     if not archivo.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="El archivo no tiene nombre.",
         )
 
-    extension = archivo.filename.lower().rsplit(".", 1)[-1] if "." in archivo.filename else ""
-    if extension not in EXTENSIONES_PERMITIDAS:
+    extension = obtener_extension(archivo.filename)
+    if not validar_extension_archivo(archivo.filename):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Formato no soportado: .{extension}. Solo se aceptan PDF y DOCX.",
@@ -66,13 +87,13 @@ async def subir_documento(
         )
 
     try:
-        # --- Subir a Supabase Storage ---
-        supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
-        ruta_storage = f"{user_id}/{archivo.filename}"
+        nombre_seguro = sanitizar_nombre_archivo(archivo.filename, extension)
+        
+        supabase = ServiceRegistry.get_supabase_client()
+        ruta_storage = f"{user_id}/{nombre_seguro}"
 
         # Determinar tipo MIME
-        content_type = "application/pdf" if extension == "pdf" else \
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        content_type = MIME_TYPES.get(extension, "application/octet-stream")
 
         supabase.storage.from_("documents").upload(
             path=ruta_storage,

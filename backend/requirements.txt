@@ -13,3 +13,7 @@ PyJWT>=2.10.0
 httpx>=0.28.0
 pydantic-settings
 cryptography
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+slowapi>=0.1.9

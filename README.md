@@ -5,7 +5,7 @@ PetroChat es una aplicación full-stack que permite a los usuarios subir documen
 ## 🧱 Stack Tecnológico
 
 ### Frontend
-- **React 18** + **Vite**
+- **React 19** + **Vite**
 - **TailwindCSS v4** (Integración moderna vía plugin)
 - **Supabase JS** (Autenticación y Storage)
 - **React Router** & **React Dropzone**
@@ -13,7 +13,7 @@ PetroChat es una aplicación full-stack que permite a los usuarios subir documen
 ### Backend
 - **Python 3.11+** + **FastAPI**
 - **LlamaIndex** (Orquestador principal RAG)
-- **Groq API** (Llama-3-70B y Mixtral-8x7B)
+- **Groq API** (Llama-3.3-70B y Llama-3.1-8B)
 - **Pinecone** (Base de datos vectorial)
 - **Supabase-py** (PostgreSQL y Storage)
 - **BGE-Small-EN-v1.5** (Modelo local gratuito para Embeddings)

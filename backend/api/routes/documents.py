@@ -4,11 +4,12 @@ Listar y eliminar documentos del usuario.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from supabase import create_client
 from core.security import obtener_usuario_actual
 from core.config import obtener_configuracion
+from core.service_registry import ServiceRegistry
 from services.rag_pipeline import eliminar_documento_rag
 from models.schemas import InfoDocumento
+from core.cache import invalidate_documentos_cache
 
 router = APIRouter(prefix="/api", tags=["Documentos"])
 
@@ -22,7 +23,7 @@ async def listar_documentos(
     Ordenados por fecha de creación (más reciente primero).
     """
     config = obtener_configuracion()
-    supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
+    supabase = ServiceRegistry.get_supabase_client()
 
     respuesta = (
         supabase.table("documents")
@@ -32,19 +33,16 @@ async def listar_documentos(
         .execute()
     )
 
-    documentos = []
-    for doc in respuesta.data:
-        documentos.append(
-            InfoDocumento(
-                id=doc["id"],
-                filename=doc["filename"],
-                status=doc["status"],
-                chunk_count=doc["chunk_count"],
-                created_at=doc["created_at"],
-            )
+    return [
+        InfoDocumento(
+            id=doc["id"],
+            filename=doc["filename"],
+            status=doc["status"],
+            chunk_count=doc["chunk_count"],
+            created_at=doc["created_at"],
         )
-
-    return documentos
+        for doc in respuesta.data
+    ]
 
 
 @router.delete("/documentos/{document_id}")
@@ -63,9 +61,8 @@ async def eliminar_documento(
     """
     config = obtener_configuracion()
     user_id = usuario["user_id"]
-    supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
+    supabase = ServiceRegistry.get_supabase_client()
 
-    # Verificar que el documento existe y pertenece al usuario
     respuesta = (
         supabase.table("documents")
         .select("id, file_path")
@@ -83,15 +80,20 @@ async def eliminar_documento(
     documento = respuesta.data[0]
 
     try:
-        # 1. Eliminar vectores de Pinecone
+        # 1. Marcar como "eliminando" en DB (soft delete)
+        supabase.table("documents").update({"status": "eliminando"}).eq("id", document_id).execute()
+        
+        # 2. Eliminar vectores de Pinecone
         await eliminar_documento_rag(document_id, user_id)
-
-        # 2. Eliminar archivo de Supabase Storage
+        
+        # 3. Eliminar archivo de Storage
         supabase.storage.from_("documents").remove([documento["file_path"]])
-
-        # 3. Eliminar registro de la base de datos
+        
+        # 4. Eliminar registro de DB (hard delete)
         supabase.table("documents").delete().eq("id", document_id).execute()
-
+        
+        invalidate_documentos_cache()
+        
         return {"mensaje": "Documento eliminado exitosamente."}
 
     except Exception as e:

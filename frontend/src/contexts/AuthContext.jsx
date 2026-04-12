@@ -67,10 +67,14 @@ export function AuthProvider({ children }) {
   }
 
   /**
-   * Obtener el token JWT actual.
+   * Obtener el token JWT actual (y refrescar si expiró).
    */
-  function obtenerToken() {
-    return sesion?.access_token || null
+  async function obtenerToken() {
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error || !session) return null
+    setSesion(session)
+    setUsuario(session.user)
+    return session.access_token
   }
 
   const valor = {

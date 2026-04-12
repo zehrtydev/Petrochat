@@ -3,48 +3,47 @@ PetroChat — Servidor Backend
 Punto de entrada principal de la API FastAPI.
 """
 
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import obtener_configuracion
+from core.rate_limit import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
-# Importar routers
 from api.routes.auth import router as router_auth
 from api.routes.upload import router as router_upload
 from api.routes.chat import router as router_chat
 from api.routes.documents import router as router_documentos
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def ciclo_vida(app: FastAPI):
-    """
-    Evento de inicio/cierre de la aplicación.
-    Se ejecuta al arrancar y al detener el servidor.
-    """
-    # --- Arranque ---
-    print("🚀 PetroChat Backend iniciando...")
+    """Evento de inicio/cierre de la aplicación."""
+    logger.info("PetroChat Backend iniciando...")
+    
     config = obtener_configuracion()
-    print(f"✅ Configuración cargada")
-    print(f"📡 Frontend URL: {config.FRONTEND_URL}")
-    print(f"🧠 Modelo LLM: {config.GROQ_MODELO_PRINCIPAL}")
-    print(f"📐 Modelo embeddings: {config.EMBEDDING_MODEL}")
-    print(f"🗄️  Índice Pinecone: {config.PINECONE_INDEX_NAME}")
-
-    # Pre-cargar el modelo de embeddings (tarda unos segundos la primera vez)
-    print("⏳ Cargando modelo de embeddings (primera vez puede tardar)...")
+    logger.info(f"Configuración cargada - Frontend: {config.FRONTEND_URL}")
+    logger.info(f"Modelo LLM: {config.GROQ_MODELO_PRINCIPAL}")
+    
+    logger.info("Precargando modelo de embeddings...")
     from services.embeddings import obtener_modelo_embeddings
     obtener_modelo_embeddings()
-    print("✅ Modelo de embeddings cargado")
-
-    print("🟢 PetroChat Backend listo!")
-
+    logger.info("Modelo de embeddings cargado")
+    
+    logger.info("PetroChat Backend listo!")
+    
     yield
+    
+    logger.info("PetroChat Backend detenido")
 
-    # --- Cierre ---
-    print("🔴 PetroChat Backend detenido")
 
-
-# Crear la aplicación FastAPI
 app = FastAPI(
     title="PetroChat API",
     description="API del chatbot inteligente con RAG para análisis de documentos",
@@ -52,25 +51,24 @@ app = FastAPI(
     lifespan=ciclo_vida,
 )
 
-# Obtener configuración para configurar CORS
 config = obtener_configuracion()
-# Limpiar la URL del frontend (quitar barra final si la tiene por accidente)
 frontend_url = config.FRONTEND_URL.rstrip("/")
 
-# Configurar CORS siendo amigables con vercel y localhost
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         frontend_url,
-        "https://petrochat.vercel.app",  # Fallback de seguridad
-        "http://localhost:5173"
+        "https://petrochat.vercel.app",
+        "http://localhost:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Registrar rutas
 app.include_router(router_auth)
 app.include_router(router_upload)
 app.include_router(router_chat)
