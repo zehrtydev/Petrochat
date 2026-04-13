@@ -5,6 +5,7 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ChatPage from './pages/ChatPage'
@@ -18,16 +19,21 @@ function RutaProtegida({ children }) {
 
   if (cargando) {
     return (
-      <div className="min-h-screen flex items-center justify-center"
-           style={{ backgroundColor: 'var(--color-bg)' }}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center">
-            <span className="text-2xl">🤖</span>
+      <div className="min-h-screen flex items-center justify-center bg-bg relative overflow-hidden">
+        {/* Background blobs decorativos */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-secondary/10 blur-[100px] rounded-full"></div>
+        <div className="flex flex-col items-center gap-5 z-10 animate-fade-in">
+          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-2xl shadow-secondary/20">
+             <span className="text-3xl text-white font-['Outfit'] font-bold">P</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-secondary)' }}></div>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              Cargando PetroChat...
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" style={{ animationDelay: '0s' }}></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            <p className="text-sm font-medium text-text-secondary mt-2">
+              Iniciando PetroChat...
             </p>
           </div>
         </div>
@@ -88,9 +94,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

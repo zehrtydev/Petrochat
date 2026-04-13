@@ -6,7 +6,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   FileText, Upload, Trash2, LogOut, Plus,
-  ChevronLeft, ChevronRight, Loader2, AlertCircle
+  ChevronLeft, ChevronRight, Loader2, AlertCircle, Search
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { obtenerDocumentos, eliminarDocumento } from '../services/api'
@@ -20,6 +20,9 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
   const [eliminando, setEliminando] = useState(null)
   const [colapsada, setColapsada] = useState(false)
   const [error, setError] = useState(null)
+  
+  // Nuevo estado para filtro de búsqueda
+  const [filtroTexto, setFiltroTexto] = useState('')
 
   const cargarDocumentos = useCallback(async () => {
     try {
@@ -75,102 +78,151 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
     }
   }, [cerrarSesion])
 
-  if (colapsada) {
-    return (
-      <div className="w-16 flex flex-col items-center py-4 gap-4 sidebar-collapsed">
-        <button onClick={() => setColapsada(false)}
-                className="sidebar-icon-btn"
-                title="Expandir barra lateral">
-          <ChevronRight size={20} />
-        </button>
-        <button onClick={() => { setColapsada(false); setMostrarUpload(true) }}
-                className="sidebar-icon-btn sidebar-icon-btn-primary"
-                title="Subir documento">
-          <Plus size={20} />
-        </button>
-      </div>
-    )
-  }
+  const documentosFiltrados = documentos.filter(doc => 
+    doc.filename.toLowerCase().includes(filtroTexto.toLowerCase())
+  )
 
   return (
-    <div className="w-72 flex flex-col h-full sidebar">
-      <div className="px-4 py-5 flex items-center justify-between sidebar-header">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center sidebar-logo">
-            <span className="text-lg">🤖</span>
+    <div className={`flex flex-col h-full bg-surface border-r border-border transition-all duration-300 ease-in-out relative ${colapsada ? 'w-16' : 'w-72 lg:w-80'}`}>
+      
+      {/* Header Sidebar */}
+      <div className="px-4 py-5 flex items-center justify-between border-b border-border/50">
+        {!colapsada && (
+          <div className="flex items-center gap-2.5 overflow-hidden animate-fade-in">
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0 shadow-sm shadow-secondary/20">
+              <span className="text-white font-['Outfit'] font-bold leading-none">P</span>
+            </div>
+            <span className="font-bold text-base font-['Outfit'] tracking-tight truncate">PetroChat</span>
           </div>
-          <span className="font-bold text-base">PetroChat</span>
+        )}
+        <button 
+          onClick={() => setColapsada(!colapsada)}
+          className={`p-1.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${colapsada ? 'mx-auto' : ''}`}
+          title={colapsada ? "Expandir barra lateral" : "Colapsar barra lateral"}
+        >
+          {colapsada ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
+      </div>
+
+      {/* Acciones principales (Botón Subir) */}
+      <div className="p-4 border-b border-border/50">
+        {colapsada ? (
+          <button 
+            onClick={() => { setColapsada(false); setMostrarUpload(true) }}
+            className="w-full flex justify-center p-2 rounded-lg bg-secondary text-white hover:bg-secondary-dark transition-colors shadow-sm"
+            title="Subir documento"
+          >
+            <Plus size={20} />
+          </button>
+        ) : (
+          <button 
+            onClick={() => setMostrarUpload(!mostrarUpload)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-secondary/10 text-secondary hover:bg-secondary hover:text-white transition-all shadow-sm group"
+          >
+            <Upload size={16} className="transition-transform group-hover:-translate-y-1" />
+            <span>Subir Documento</span>
+          </button>
+        )}
+      </div>
+
+      {/* Panel de Subida Expansible */}
+      {!colapsada && mostrarUpload && (
+        <div className="px-4 py-3 bg-surface border-b border-border/50 animate-slide-up">
+          <FileUpload
+            onDocumentoSubido={manejarDocumentoSubido}
+            onCerrar={() => setMostrarUpload(false)}
+          />
         </div>
-        <button onClick={() => setColapsada(true)}
-                className="sidebar-icon-btn"
-                title="Colapsar barra lateral">
-          <ChevronLeft size={18} />
-        </button>
-      </div>
+      )}
 
-      <div className="px-4 py-3">
-        <button onClick={() => setMostrarUpload(!mostrarUpload)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium sidebar-upload-btn">
-          <Upload size={16} />
-          Subir Documento
-        </button>
-      </div>
-
-      {mostrarUpload && (
-        <div className="px-4 pb-3">
-          <div className="rounded-xl p-3 sidebar-upload-panel">
-            <FileUpload
-              onDocumentoSubido={manejarDocumentoSubido}
-              onCerrar={() => setMostrarUpload(false)}
+      {/* Buscador */}
+      {!colapsada && (
+        <div className="px-4 pt-4 pb-2">
+          <div className="relative group">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Buscar documento..." 
+              value={filtroTexto}
+              onChange={(e) => setFiltroTexto(e.target.value)}
+              className="w-full bg-bg border border-border rounded-lg pl-8 pr-3 py-1.5 text-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-3 py-2">
-        <p className="text-xs font-medium px-2 mb-2 sidebar-section-title">
-          MIS DOCUMENTOS
-        </p>
+      {/* Lista de Documentos */}
+      <div className="flex-1 overflow-y-auto px-2 py-2">
+        {!colapsada && (
+          <p className="text-xs font-semibold px-2 mb-2 text-text-secondary uppercase tracking-wider">
+            Mis Documentos
+          </p>
+        )}
 
-        {error && (
-          <div className="flex items-center gap-2 px-3 py-2 mb-2 rounded-lg bg-red-500/20 text-red-300 text-sm">
+        {error && !colapsada && (
+          <div className="flex items-center gap-2 px-3 py-2 mb-2 mx-2 rounded-lg bg-error/10 text-error text-xs border border-error/20">
             <AlertCircle size={14} />
-            <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto">✕</button>
+            <span className="flex-1">{error}</span>
+            <button onClick={() => setError(null)} className="hover:opacity-70">✕</button>
           </div>
         )}
 
         {cargando ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 size={24} className="animate-spin sidebar-loading" />
+            <Loader2 size={24} className="animate-spin text-primary/50" />
           </div>
-        ) : documentos.length === 0 ? (
-          <div className="text-center py-8 px-2">
-            <FileText size={32} className="mx-auto mb-3 sidebar-empty-icon" />
-            <p className="text-sm sidebar-empty-text">No hay documentos todavía</p>
-            <p className="text-xs sidebar-empty-hint">Subí un PDF o DOCX para empezar</p>
-          </div>
+        ) : documentosFiltrados.length === 0 ? (
+          !colapsada && (
+            <div className="flex flex-col items-center justify-center text-center py-10 px-4 opacity-70">
+              <div className="w-12 h-12 bg-bg rounded-full flex items-center justify-center mb-3">
+                <FileText size={20} className="text-text-secondary" />
+              </div>
+              <p className="text-sm text-text-primary font-medium">No se encontraron documentos</p>
+              <p className="text-xs text-text-secondary mt-1">
+                {documentos.length === 0 ? "Sube un archivo PDF o DOCX para comenzar" : "Intenta con otra búsqueda"}
+              </p>
+            </div>
+          )
         ) : (
           <div className="space-y-1">
-            {documentos.map((doc) => {
+            {documentosFiltrados.map((doc) => {
               const activo = documentoActivo?.id === doc.id
+              if (colapsada) {
+                return (
+                  <button 
+                    key={doc.id}
+                    onClick={() => onSeleccionarDocumento(doc)}
+                    title={doc.filename}
+                    className={`w-10 h-10 mx-auto flex items-center justify-center rounded-lg transition-colors ${activo ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-bg hover:text-text-primary'}`}
+                  >
+                    <FileText size={18} />
+                  </button>
+                )
+              }
               return (
                 <div
                   key={doc.id}
                   onClick={() => onSeleccionarDocumento(doc)}
-                  className="sidebar-doc-item"
-                  data-activo={activo}
+                  className={`group flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all border ${activo ? 'bg-primary/5 border-primary/20 shadow-sm' : 'border-transparent hover:bg-bg hover:border-border/50'}`}
                 >
-                  <FileText size={16} className="flex-shrink-0 sidebar-doc-icon" />
+                  <div className={`p-2 rounded-lg ${activo ? 'bg-primary/10 text-primary' : 'bg-surface text-text-secondary shadow-sm shadow-black/5'} transition-colors`}>
+                    <FileText size={16} />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm truncate">{doc.filename}</p>
-                    <p className="text-xs sidebar-doc-meta">
-                      {doc.chunk_count} fragmentos • {doc.status === 'listo' ? '✓ Listo' : '⏳ Procesando'}
+                    <p className={`text-sm truncate font-medium ${activo ? 'text-primary' : 'text-text-primary group-hover:text-primary transition-colors'}`}>
+                      {doc.filename}
+                    </p>
+                    <p className="text-xs text-text-secondary mt-0.5 truncate flex items-center gap-1.5">
+                      <span>{doc.chunk_count} fragmentos</span>
+                      <span className="w-1 h-1 rounded-full bg-border"></span>
+                      <span className={doc.status === 'listo' ? 'text-success' : 'text-warning'}>
+                        {doc.status === 'listo' ? 'Listo' : 'Procesando...'}
+                      </span>
                     </p>
                   </div>
                   <button
                     onClick={(e) => manejarEliminar(e, doc.id)}
-                    className="sidebar-delete-btn"
+                    className="p-1.5 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity hover:text-error hover:bg-error/10 rounded-md"
                     title="Eliminar documento"
                   >
                     {eliminando === doc.id
@@ -185,20 +237,30 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
         )}
       </div>
 
-      <div className="px-4 py-3 sidebar-footer">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold sidebar-avatar">
-            {usuario?.email?.[0]?.toUpperCase() || 'U'}
+      {/* Footer Usuario */}
+      <div className="p-4 border-t border-border/50 bg-bg/30">
+        {colapsada ? (
+           <button onClick={manejarCerrarSesion}
+                   className="w-10 h-10 mx-auto rounded-full flex items-center justify-center bg-error/10 text-error hover:bg-error hover:text-white transition-colors"
+                   title="Cerrar sesión">
+             <LogOut size={16} />
+           </button>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-primary text-white shadow-sm ring-2 ring-surface">
+              {usuario?.email?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate text-text-primary">{usuario?.email?.split('@')[0] || 'Usuario'}</p>
+              <p className="text-xs truncate text-text-secondary">Conectado</p>
+            </div>
+            <button onClick={manejarCerrarSesion}
+                    className="p-2 text-text-secondary hover:text-error hover:bg-error/10 rounded-lg transition-colors"
+                    title="Cerrar sesión">
+              <LogOut size={18} />
+            </button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm truncate">{usuario?.email || 'Usuario'}</p>
-          </div>
-          <button onClick={manejarCerrarSesion}
-                  className="sidebar-logout-btn"
-                  title="Cerrar sesión">
-            <LogOut size={18} />
-          </button>
-        </div>
+        )}
       </div>
     </div>
   )
