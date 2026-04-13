@@ -107,8 +107,8 @@ async def obtener_usuario_actual(
                 token,
                 llave_publica,
                 algorithms=ALLOWED_ALGORITHMS,
-                audience=config.SUPABASE_URL,
-                issuer=f"{config.SUPABASE_URL}",
+                audience="authenticated",
+                issuer=f"{config.SUPABASE_URL}/auth/v1",
             )
         else:
             raise HTTPException(
