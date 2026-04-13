@@ -8,42 +8,42 @@
    ============================================ */
 
 :root {
-  /* --- Ámbar Neón (Action) --- */
-  --theme-secondary: #f59e0b;      /* amber-500 */
-  --theme-secondary-dark: #d97706; /* amber-600 */
-  --theme-secondary-light: #fbbf24;/* amber-400 */
+  /* --- Colores principales (Azul) --- */
+  --theme-primary: #324158;
+  --theme-primary-dark: #1F2A38;
+  --theme-primary-light: #4A5D73;
 
-  /* --- Fondos y superficies (LIGHT) --- */
-  --theme-bg: #FAFAFA;       /* zinc-50 */
-  --theme-surface: #FFFFFF;  /* pure white */
-  --theme-border: #E4E4E7;   /* zinc-200 */
+  /* --- Colores de acción (Naranja) --- */
+  --theme-secondary: #FF5A0A;
+  --theme-secondary-dark: #CC4708;
+  --theme-secondary-light: #FF7A33;
+
+  /* --- Fondos y superficies --- */
+  --theme-bg: #F5F7FA;
+  --theme-surface: #FFFFFF;
+  --theme-border: #E1E5EA;
   
-  /* --- Texto (LIGHT) --- */
-  --theme-text-primary: #09090B;   /* zinc-950 */
-  --theme-text-secondary: #71717A; /* zinc-500 */
+  /* --- Texto --- */
+  --theme-text-primary: #1C1C1C;
+  --theme-text-secondary: #6B7280;
   --theme-text-on-dark: #FFFFFF;
 
   /* --- Estados --- */
-  --theme-success: #10B981;
+  --theme-success: #22C55E;
   --theme-warning: #F59E0B;
   --theme-error: #EF4444;
   --theme-info: #3B82F6;
-  
-  /* Gradientes Auxiliares */
-  --theme-primary: #18181b;      /* zinc-900 */
-  --theme-primary-dark: #09090B; /* zinc-950 */
-  --theme-primary-light: #27272a;/* zinc-800 */
 }
 
 .dark {
   /* --- Fondos y superficies (DARK) --- */
-  --theme-bg: #000000;         /* True Black */
-  --theme-surface: #09090B;    /* Zinc 950 */
-  --theme-border: rgba(255, 255, 255, 0.08);
+  --theme-bg: #111827;         
+  --theme-surface: #1F2A38;    /* Usando primary-dark para tarjetas */
+  --theme-border: #324158;     /* Usando primary para bordes en dark mode */
 
   /* --- Texto (DARK) --- */
-  --theme-text-primary: #FAFAFA;   /* zinc-50 */
-  --theme-text-secondary: #A1A1AA; /* zinc-400 */
+  --theme-text-primary: #F3F4F6;   
+  --theme-text-secondary: #9CA3AF; 
   --theme-text-on-dark: #FFFFFF;
 }
 

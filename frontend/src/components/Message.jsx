@@ -22,33 +22,30 @@ export default function Message({ mensaje }) {
 
   return (
     <div className={`flex w-full ${esUsuario ? 'justify-end' : 'justify-start'} animate-slide-up group`}>
-      <div className={`flex gap-4 max-w-[85%] sm:max-w-[75%] ${esUsuario ? 'flex-row-reverse' : 'flex-row'}`}>
+      <div className={`flex gap-4 w-full ${esUsuario ? 'flex-row-reverse' : 'flex-row'}`}>
         
         {/* Avatar AI */}
         {!esUsuario && (
-          <div className="w-8 h-8 rounded-lg bg-surface border border-border flex items-center justify-center shrink-0 mt-1 shadow-sm">
-            <span className="font-['Outfit'] font-bold text-sm">P</span>
+          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shrink-0 mt-1 shadow-sm">
+            <Bot size={18} />
           </div>
         )}
 
         {/* Contenido principal */}
-        <div className={`flex flex-col ${esUsuario ? 'items-end' : 'items-start'}`}>
+        <div className={`flex flex-col min-w-0 ${esUsuario ? 'items-end' : 'items-start w-full'}`}>
           
-          {/* Metadatos superiores */}
-          <div className="flex items-center gap-2 mb-1.5 px-1">
+          {/* Metadatos superiores (Ocultos en diseño limpio tipo ChatGPT, pero guardamos el header para contexto opcional o lo obviamos. Mejor sin header para IA pura) */}
+          <div className="flex items-center gap-2 mb-1 px-1">
             <span className="text-[13px] font-semibold text-text-primary">
-              {esUsuario ? 'Tú' : 'PetroChat IA'}
-            </span>
-            <span className="text-[11px] text-text-secondary font-medium">
-              {timestamp}
+              {esUsuario ? 'Tú' : 'PetroChat'}
             </span>
           </div>
 
-          {/* Burbuja */}
-          <div className={`relative px-5 py-3.5 shadow-sm ${
+          {/* Área de texto/Burbuja */}
+          <div className={`relative px-5 py-3 ${
             esUsuario 
-              ? 'bg-text-primary text-bg rounded-[20px] rounded-tr-sm border border-transparent' 
-              : 'bg-surface text-text-primary rounded-[20px] rounded-tl-sm border border-border/70 dark:bg-[#050505]'
+              ? 'bg-surface border border-border text-text-primary rounded-[24px] max-w-[85%] sm:max-w-[70%]' 
+              : 'bg-transparent text-text-primary w-full max-w-full'
           }`}>
             {mensaje.escribiendo ? (
               <div className="flex items-center gap-1.5 h-6 px-1">
@@ -58,9 +55,9 @@ export default function Message({ mensaje }) {
               </div>
             ) : (
                esUsuario ? (
-                <p className="text-[15px] leading-relaxed whitespace-pre-wrap text-bg">{mensaje.texto}</p>
+                <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{mensaje.texto}</p>
               ) : (
-                <div className="markdown-body text-[15px]">
+                <div className="markdown-body text-[15px] max-w-full w-full">
                   <ReactMarkdown>{mensaje.texto}</ReactMarkdown>
                 </div>
               )

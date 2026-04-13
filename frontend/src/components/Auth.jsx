@@ -1,8 +1,3 @@
-/**
- * Componente de formulario de autenticación reutilizable.
- * Se usa tanto para login como para registro.
- */
-
 import { useState } from 'react'
 import { Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react'
 
@@ -35,125 +30,113 @@ export default function Auth({ modo, onSubmit, onCambiarModo }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-mesh-pattern relative overflow-hidden">
-      {/* Background radial gradient ultra-soft */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-secondary/10 blur-[120px] rounded-full pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
-
-      <div className="w-full max-w-md animate-slide-up relative z-10">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-bg">
+      <div className="w-full max-w-md animate-slide-up">
         
-        {/* Componente Contenedor con Glassmorphism V2 */}
-        <div className="glass-panel rounded-[24px] overflow-hidden">
-          
-          {/* Header */}
-          <div className="px-10 pt-12 pb-8 text-center relative overflow-hidden">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-transparent via-secondary to-transparent opacity-50"></div>
-            
-            <div className="flex items-center justify-center gap-4 mb-4 relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-black/10 border border-border/50">
-                <span className="text-3xl text-white font-['Outfit'] font-bold">P</span>
-              </div>
-            </div>
-            <h1 className="text-[32px] font-bold font-['Outfit'] tracking-tight mb-2 text-text-primary">PetroChat</h1>
-            <p className="text-text-secondary text-[15px] font-medium max-w-[280px] mx-auto">
-              {esLogin ? 'Inicia sesión para continuar' : 'Crea tu cuenta gratis'}
-            </p>
-          </div>
-
-          {/* Formulario */}
-          <div className="px-10 pb-12">
-            <form onSubmit={manejarSubmit} className="space-y-6">
-              {/* Campo email */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium block text-text-primary">
-                  Correo Electrónico
-                </label>
-                <div className="relative group">
-                  <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-secondary" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ejemplo@empresa.com"
-                    required
-                    className="input-field pl-11"
-                  />
-                </div>
-              </div>
-
-              {/* Campo contraseña */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium block text-text-primary">
-                  Contraseña
-                </label>
-                <div className="relative group">
-                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-secondary" />
-                  <input
-                    type={mostrarContrasena ? 'text' : 'password'}
-                    value={contrasena}
-                    onChange={(e) => setContrasena(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                    className="input-field pl-11 pr-11"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setMostrarContrasena(!mostrarContrasena)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 btn-ghost p-1.5 text-text-secondary hover:text-text-primary"
-                    title={mostrarContrasena ? "Ocultar" : "Ver"}
-                  >
-                    {mostrarContrasena ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Mensajes de error/éxito */}
-              {error && (
-                <div className="text-sm px-4 py-3 rounded-xl animate-fade-in bg-error/10 text-error flex gap-3 items-center border border-error/20">
-                  <span className="flex-shrink-0 bg-error/20 rounded-full p-1"><Check size={12} className="opacity-0"/></span> {/* Trick spacing */}
-                  <p className="font-medium">{error}</p>
-                </div>
-              )}
-
-              {exito && (
-                <div className="text-sm px-4 py-3 rounded-xl animate-fade-in bg-success/10 text-success flex gap-3 items-center border border-success/20">
-                  <span className="flex-shrink-0 bg-success/20 rounded-full p-1"><Check size={12}/></span>
-                  <p className="font-medium">{exito}</p>
-                </div>
-              )}
-
-              {/* Botón de submit */}
-              <button type="submit" disabled={cargando}
-                      className="btn-primary w-full justify-center py-3.5 text-[15px] mt-4">
-                {cargando ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    <span>{esLogin ? 'Iniciando...' : 'Creando cuenta...'}</span>
-                  </>
-                ) : (
-                  <span>{esLogin ? 'Iniciar Sesión' : 'Continuar'}</span>
-                )}
-              </button>
-            </form>
-
-            {/* Enlace alternar */}
-            <div className="mt-8 text-center text-[14.5px] text-text-secondary font-medium">
-              {esLogin ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}{' '}
-              <button 
-                onClick={onCambiarModo}
-                className="text-text-primary hover:text-secondary hover:underline transition-colors ml-1"
-              >
-                {esLogin ? 'Regístrate' : 'Inicia Sesión'}
-              </button>
-            </div>
-          </div>
+        {/* Header simple encima de la caja (Estilo Tecnifact) */}
+        <div className="text-center mb-8">
+          <h1 className="text-[32px] font-bold font-sans tracking-tight mb-2 text-text-primary">
+            <span className="text-secondary">Petro</span>Chat
+          </h1>
+          <p className="text-text-secondary text-[15px] font-medium">
+            {esLogin ? 'Inicia sesión en tu cuenta' : 'Crea tu cuenta gratis'}
+          </p>
         </div>
-        
-        {/* Footer legal estético */}
-        <p className="text-center text-[13px] text-text-secondary/50 mt-8 font-medium">
-          &copy; {new Date().getFullYear()} PetroChat, Inc. All rights reserved.
-        </p>
+
+        {/* Tarjeta de Formulario limpia */}
+        <div className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-xl">
+          <form onSubmit={manejarSubmit} className="space-y-5">
+            {/* Campo email */}
+            <div className="space-y-1.5">
+              <label className="text-sm text-text-secondary">
+                Correo electrónico
+              </label>
+              <div className="relative group">
+                <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-secondary transition-colors" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@correo.com"
+                  required
+                  className="w-full bg-bg border border-border rounded-xl pl-10 pr-4 py-3 text-[14px] text-text-primary outline-none focus:border-secondary transition-colors placeholder:text-text-secondary/50"
+                />
+              </div>
+            </div>
+
+            {/* Campo contraseña */}
+            <div className="space-y-1.5">
+              <label className="text-sm text-text-secondary">
+                Contraseña
+              </label>
+              <div className="relative group">
+                <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-secondary transition-colors" />
+                <input
+                  type={mostrarContrasena ? 'text' : 'password'}
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
+                  placeholder="Tu contraseña"
+                  required
+                  minLength={6}
+                  className="w-full bg-bg border border-border rounded-xl pl-10 pr-10 py-3 text-[14px] text-text-primary outline-none focus:border-secondary transition-colors placeholder:text-text-secondary/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarContrasena(!mostrarContrasena)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
+                >
+                  {mostrarContrasena ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Link Olvidaste contraseña */}
+            {esLogin && (
+              <div className="flex justify-end pt-1">
+                <a href="#" className="text-sm text-secondary hover:text-text-primary transition-colors">
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
+            )}
+
+            {error && (
+              <div className="p-3 bg-error/10 border border-error/20 rounded-xl text-sm text-error font-medium">
+                {error}
+              </div>
+            )}
+
+            {exito && (
+              <div className="p-3 bg-success/10 border border-success/20 rounded-xl text-sm text-success font-medium">
+                {exito}
+              </div>
+            )}
+
+            {/* Botón principal */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={cargando}
+                className="w-full flex items-center justify-center gap-2 bg-secondary text-white py-3 px-4 rounded-xl font-medium text-[15px] hover:bg-secondary-dark active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
+                {cargando ? <Loader2 size={18} className="animate-spin" /> : null}
+                <span>{esLogin ? 'Iniciar sesión' : 'Crear cuenta'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Footer cambiar modo */}
+        <div className="mt-6 text-center">
+          <p className="text-text-secondary text-sm">
+            {esLogin ? '¿No tienes cuenta? ' : '¿Ya tienes una cuenta? '}
+            <button
+              onClick={onCambiarModo}
+              className="text-secondary font-semibold hover:text-text-primary transition-colors ml-1"
+            >
+              {esLogin ? 'Regístrate gratis' : 'Inicia sesión'}
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   )
