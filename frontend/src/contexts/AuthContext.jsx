@@ -3,7 +3,7 @@
  * Gestiona el estado de sesión del usuario con Supabase Auth.
  */
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../services/supabaseClient'
 
 const AuthContext = createContext(null)
@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
   /**
    * Iniciar sesión con email y contraseña.
    */
-  async function iniciarSesion(email, contrasena) {
+  const iniciarSesion = useCallback(async (email, contrasena) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password: contrasena,
@@ -43,12 +43,12 @@ export function AuthProvider({ children }) {
 
     if (error) throw error
     return data
-  }
+  }, [])
 
   /**
    * Registrar un nuevo usuario.
    */
-  async function registrarse(email, contrasena) {
+  const registrarse = useCallback(async (email, contrasena) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password: contrasena,
@@ -56,28 +56,26 @@ export function AuthProvider({ children }) {
 
     if (error) throw error
     return data
-  }
+  }, [])
 
   /**
    * Cerrar sesión.
    */
-  async function cerrarSesion() {
+  const cerrarSesion = useCallback(async () => {
     const { error } = await supabase.auth.signOut()
     if (error) throw error
-  }
+  }, [])
 
   /**
    * Obtener el token JWT actual (y refrescar si expiró).
    */
-  async function obtenerToken() {
+  const obtenerToken = useCallback(async () => {
     const { data: { session }, error } = await supabase.auth.getSession()
     if (error || !session) return null
-    setSesion(session)
-    setUsuario(session.user)
     return session.access_token
-  }
+  }, [])
 
-  const valor = {
+  const valor = useMemo(() => ({
     usuario,
     sesion,
     cargando,
@@ -85,7 +83,7 @@ export function AuthProvider({ children }) {
     registrarse,
     cerrarSesion,
     obtenerToken,
-  }
+  }), [usuario, sesion, cargando, iniciarSesion, registrarse, cerrarSesion, obtenerToken])
 
   return (
     <AuthContext.Provider value={valor}>
