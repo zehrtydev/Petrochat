@@ -12,16 +12,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { obtenerDocumentos, eliminarDocumento } from '../services/api'
 import FileUpload from './FileUpload'
 
-export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
-  const { usuario, cerrarSesion, obtenerToken } = useAuth()
+export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {  const { usuario, cerrarSesion, obtenerToken } = useAuth()
   const [documentos, setDocumentos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mostrarUpload, setMostrarUpload] = useState(false)
   const [eliminando, setEliminando] = useState(null)
   const [colapsada, setColapsada] = useState(false)
   const [error, setError] = useState(null)
-  
-  // Nuevo estado para filtro de búsqueda
   const [filtroTexto, setFiltroTexto] = useState('')
 
   const cargarDocumentos = useCallback(async () => {
@@ -32,8 +29,8 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
       const docs = await obtenerDocumentos(token)
       setDocumentos(docs)
     } catch (err) {
-      setError('Error al cargar documentos. Intenta de nuevo.')
-      console.error('Error al cargar documentos:', err)
+      setError('Error al cargar documentos.')
+      console.error('Error:', err)
     } finally {
       setCargando(false)
     }
@@ -45,7 +42,7 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
 
   const manejarEliminar = useCallback(async (e, docId) => {
     e.stopPropagation()
-    if (!confirm('¿Estás seguro de que querés eliminar este documento?')) return
+    if (!confirm('¿Seguro de que deseas eliminar este documento?')) return
 
     try {
       setEliminando(docId)
@@ -57,8 +54,7 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
         onSeleccionarDocumento(null)
       }
     } catch (err) {
-      setError('Error al eliminar el documento. Intenta de nuevo.')
-      console.error('Error al eliminar:', err)
+      setError('Hubo un error al eliminar.')
     } finally {
       setEliminando(null)
     }
@@ -74,7 +70,6 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
       await cerrarSesion()
     } catch (err) {
       setError('Error al cerrar sesión.')
-      console.error('Error al cerrar sesión:', err)
     }
   }, [cerrarSesion])
 
@@ -86,48 +81,48 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
     <div className={`flex flex-col h-full bg-surface border-r border-border transition-all duration-300 ease-in-out relative ${colapsada ? 'w-16' : 'w-72 lg:w-80'}`}>
       
       {/* Header Sidebar */}
-      <div className="px-4 py-5 flex items-center justify-between border-b border-border/50">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-border/50 shrink-0">
         {!colapsada && (
-          <div className="flex items-center gap-2.5 overflow-hidden animate-fade-in">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0 shadow-sm shadow-secondary/20">
-              <span className="text-white font-['Outfit'] font-bold leading-none">P</span>
+          <div className="flex items-center gap-3 overflow-hidden animate-fade-in flex-1">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-sm border border-border/50">
+              <span className="text-white font-['Outfit'] font-bold text-sm leading-none">P</span>
             </div>
-            <span className="font-bold text-base font-['Outfit'] tracking-tight truncate">PetroChat</span>
+            <span className="font-semibold text-[15px] font-['Outfit'] tracking-tight truncate text-text-primary">PetroChat</span>
           </div>
         )}
         <button 
           onClick={() => setColapsada(!colapsada)}
-          className={`p-1.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${colapsada ? 'mx-auto' : ''}`}
-          title={colapsada ? "Expandir barra lateral" : "Colapsar barra lateral"}
+          className={`p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg transition-colors ${colapsada ? 'mx-auto' : ''}`}
+          title={colapsada ? "Expandir" : "Contraer"}
         >
-          {colapsada ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {colapsada ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
 
-      {/* Acciones principales (Botón Subir) */}
-      <div className="p-4 border-b border-border/50">
+      {/* Acción Subir Documento */}
+      <div className="p-4">
         {colapsada ? (
           <button 
             onClick={() => { setColapsada(false); setMostrarUpload(true) }}
-            className="w-full flex justify-center p-2 rounded-lg bg-secondary text-white hover:bg-secondary-dark transition-colors shadow-sm"
+            className="w-full flex justify-center p-2 rounded-xl bg-secondary text-white hover:bg-secondary-dark transition-colors shadow-[0_2px_8px_-2px_rgba(245,158,11,0.4)]"
             title="Subir documento"
           >
-            <Plus size={20} />
+            <Plus size={18} />
           </button>
         ) : (
           <button 
             onClick={() => setMostrarUpload(!mostrarUpload)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-secondary/10 text-secondary hover:bg-secondary hover:text-white transition-all shadow-sm group"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-secondary transition-all shadow-md group"
           >
-            <Upload size={16} className="transition-transform group-hover:-translate-y-1" />
+            <Upload size={16} className="transition-transform group-hover:-translate-y-0.5" />
             <span>Subir Documento</span>
           </button>
         )}
       </div>
 
-      {/* Panel de Subida Expansible */}
+      {/* Upload Panel */}
       {!colapsada && mostrarUpload && (
-        <div className="px-4 py-3 bg-surface border-b border-border/50 animate-slide-up">
+        <div className="px-4 pb-4 animate-slide-up">
           <FileUpload
             onDocumentoSubido={manejarDocumentoSubido}
             onCerrar={() => setMostrarUpload(false)}
@@ -137,127 +132,126 @@ export default function Sidebar({ documentoActivo, onSeleccionarDocumento }) {
 
       {/* Buscador */}
       {!colapsada && (
-        <div className="px-4 pt-4 pb-2">
+        <div className="px-4 pb-2">
           <div className="relative group">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" />
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" />
             <input 
               type="text" 
-              placeholder="Buscar documento..." 
+              placeholder="Buscar archivo..." 
               value={filtroTexto}
               onChange={(e) => setFiltroTexto(e.target.value)}
-              className="w-full bg-bg border border-border rounded-lg pl-8 pr-3 py-1.5 text-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full bg-bg border border-border rounded-[10px] pl-9 pr-3 py-1.5 text-[13px] text-text-primary outline-none focus:border-secondary transition-all shadow-inner"
             />
           </div>
         </div>
       )}
 
       {/* Lista de Documentos */}
-      <div className="flex-1 overflow-y-auto px-2 py-2">
+      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
         {!colapsada && (
-          <p className="text-xs font-semibold px-2 mb-2 text-text-secondary uppercase tracking-wider">
-            Mis Documentos
+          <p className="text-[11px] font-semibold px-2 mb-2 mt-2 text-text-secondary uppercase tracking-[0.08em]">
+            Archivos
           </p>
         )}
 
         {error && !colapsada && (
-          <div className="flex items-center gap-2 px-3 py-2 mb-2 mx-2 rounded-lg bg-error/10 text-error text-xs border border-error/20">
-            <AlertCircle size={14} />
-            <span className="flex-1">{error}</span>
-            <button onClick={() => setError(null)} className="hover:opacity-70">✕</button>
+          <div className="flex items-center gap-2 px-3 py-2 mb-2 mx-1 rounded-lg bg-error/10 text-error text-[12px] border border-error/20">
+            <AlertCircle size={14} className="shrink-0"/>
+            <span className="flex-1 truncate">{error}</span>
           </div>
         )}
 
         {cargando ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 size={24} className="animate-spin text-primary/50" />
+            <Loader2 size={20} className="animate-spin text-secondary" />
           </div>
         ) : documentosFiltrados.length === 0 ? (
           !colapsada && (
-            <div className="flex flex-col items-center justify-center text-center py-10 px-4 opacity-70">
-              <div className="w-12 h-12 bg-bg rounded-full flex items-center justify-center mb-3">
-                <FileText size={20} className="text-text-secondary" />
+            <div className="flex flex-col items-center justify-center text-center py-10 px-4">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-bg border border-border mb-3">
+                <FileText size={16} className="text-text-secondary" />
               </div>
-              <p className="text-sm text-text-primary font-medium">No se encontraron documentos</p>
-              <p className="text-xs text-text-secondary mt-1">
-                {documentos.length === 0 ? "Sube un archivo PDF o DOCX para comenzar" : "Intenta con otra búsqueda"}
+              <p className="text-[13px] text-text-primary font-medium">Bandeja vacía</p>
+              <p className="text-[12px] text-text-secondary mt-1">
+                {documentos.length === 0 ? "Sube un archivo para comenzar" : "Sin resultados"}
               </p>
             </div>
           )
         ) : (
-          <div className="space-y-1">
-            {documentosFiltrados.map((doc) => {
-              const activo = documentoActivo?.id === doc.id
-              if (colapsada) {
-                return (
-                  <button 
-                    key={doc.id}
-                    onClick={() => onSeleccionarDocumento(doc)}
-                    title={doc.filename}
-                    className={`w-10 h-10 mx-auto flex items-center justify-center rounded-lg transition-colors ${activo ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-bg hover:text-text-primary'}`}
-                  >
-                    <FileText size={18} />
-                  </button>
-                )
-              }
+          documentosFiltrados.map((doc) => {
+            const activo = documentoActivo?.id === doc.id
+            if (colapsada) {
               return (
-                <div
+                <button 
                   key={doc.id}
                   onClick={() => onSeleccionarDocumento(doc)}
-                  className={`group flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all border ${activo ? 'bg-primary/5 border-primary/20 shadow-sm' : 'border-transparent hover:bg-bg hover:border-border/50'}`}
+                  title={doc.filename}
+                  className={`w-10 h-10 mx-auto flex flex-col items-center justify-center rounded-xl transition-all ${activo ? 'bg-secondary text-white shadow-md' : 'text-text-secondary hover:bg-bg hover:text-text-primary'}`}
                 >
-                  <div className={`p-2 rounded-lg ${activo ? 'bg-primary/10 text-primary' : 'bg-surface text-text-secondary shadow-sm shadow-black/5'} transition-colors`}>
-                    <FileText size={16} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm truncate font-medium ${activo ? 'text-primary' : 'text-text-primary group-hover:text-primary transition-colors'}`}>
-                      {doc.filename}
-                    </p>
-                    <p className="text-xs text-text-secondary mt-0.5 truncate flex items-center gap-1.5">
-                      <span>{doc.chunk_count} fragmentos</span>
-                      <span className="w-1 h-1 rounded-full bg-border"></span>
-                      <span className={doc.status === 'listo' ? 'text-success' : 'text-warning'}>
-                        {doc.status === 'listo' ? 'Listo' : 'Procesando...'}
-                      </span>
-                    </p>
-                  </div>
-                  <button
-                    onClick={(e) => manejarEliminar(e, doc.id)}
-                    className="p-1.5 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity hover:text-error hover:bg-error/10 rounded-md"
-                    title="Eliminar documento"
-                  >
-                    {eliminando === doc.id
-                      ? <Loader2 size={14} className="animate-spin" />
-                      : <Trash2 size={14} />
-                    }
-                  </button>
-                </div>
+                  <FileText size={16} />
+                </button>
               )
-            })}
-          </div>
+            }
+            return (
+              <div
+                key={doc.id}
+                onClick={() => onSeleccionarDocumento(doc)}
+                className={`group flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all border ${activo ? 'bg-bg border-border shadow-sm' : 'border-transparent hover:bg-bg/50'}`}
+              >
+                <div className={`p-2 rounded-lg flex items-center justify-center ${activo ? 'bg-secondary text-white shadow-sm' : 'bg-surface border border-border text-text-secondary group-hover:text-primary'} transition-colors`}>
+                  <FileText size={14} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[13px] truncate font-medium ${activo ? 'text-primary' : 'text-text-primary group-hover:text-primary transition-colors'}`}>
+                    {doc.filename}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[11px] text-text-secondary truncate">{doc.chunk_count} frags</span>
+                    <span className="w-[3px] h-[3px] rounded-full bg-border"></span>
+                    <span className={`text-[11px] font-medium truncate ${doc.status === 'listo' ? 'text-success' : 'text-warning'}`}>
+                      {doc.status === 'listo' ? 'Listo' : 'Procesando'}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => manejarEliminar(e, doc.id)}
+                  className="p-1.5 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity hover:text-error hover:bg-error/10 rounded-md"
+                  title="Eliminar"
+                >
+                  {eliminando === doc.id
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : <Trash2 size={14} />
+                  }
+                </button>
+              </div>
+            )
+          })
         )}
       </div>
 
       {/* Footer Usuario */}
-      <div className="p-4 border-t border-border/50 bg-bg/30">
+      <div className="p-4 border-t border-border/50 shrink-0">
         {colapsada ? (
            <button onClick={manejarCerrarSesion}
-                   className="w-10 h-10 mx-auto rounded-full flex items-center justify-center bg-error/10 text-error hover:bg-error hover:text-white transition-colors"
+                   className="w-10 h-10 mx-auto rounded-xl flex items-center justify-center text-text-secondary hover:bg-error/10 hover:text-error transition-colors"
                    title="Cerrar sesión">
              <LogOut size={16} />
            </button>
         ) : (
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-primary text-white shadow-sm ring-2 ring-surface">
+          <div className="flex items-center gap-3 bg-bg p-2 rounded-2xl border border-border">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold bg-primary text-white shadow-sm">
               {usuario?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-text-primary">{usuario?.email?.split('@')[0] || 'Usuario'}</p>
-              <p className="text-xs truncate text-text-secondary">Conectado</p>
+              <p className="text-[13px] font-semibold truncate text-text-primary">{usuario?.email?.split('@')[0] || 'User'}</p>
+              <p className="text-[11px] truncate text-success font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Online
+              </p>
             </div>
             <button onClick={manejarCerrarSesion}
-                    className="p-2 text-text-secondary hover:text-error hover:bg-error/10 rounded-lg transition-colors"
-                    title="Cerrar sesión">
-              <LogOut size={18} />
+                    className="p-2 text-text-secondary hover:text-error rounded-lg transition-colors"
+                    title="Salir">
+              <LogOut size={16} />
             </button>
           </div>
         )}

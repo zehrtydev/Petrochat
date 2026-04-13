@@ -16,17 +16,14 @@ export default function Chat({ documentoActivo }) {
   const refInput = useRef(null)
   const abortControllerRef = useRef(null)
 
-  /* Auto-scroll al último mensaje */
   useEffect(() => {
     refFinal.current?.scrollIntoView({ behavior: 'smooth' })
   }, [mensajes])
 
-  /* Focus en el input al montar */
   useEffect(() => {
     refInput.current?.focus()
   }, [])
 
-  /* Cleanup al desmontar - abortar streams activos */
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -42,7 +39,6 @@ export default function Chat({ documentoActivo }) {
 
     setErrorGlobal(null)
     
-    // timestamp inicial
     const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     const mensajeUsuario = {
       id: Date.now(),
@@ -118,62 +114,63 @@ export default function Chat({ documentoActivo }) {
   return (
     <div className="flex flex-col h-full bg-bg relative">
       
-      {/* Header Contextual Fijo */}
-      <div className="h-16 border-b border-border bg-surface/80 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-10 shadow-sm">
+      {/* Header Translúcido Superior */}
+      <div className="h-[60px] border-b border-border bg-bg/80 backdrop-blur-xl px-8 flex items-center justify-between z-10 absolute top-0 w-full left-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Info size={20} className="text-primary" />
-          </div>
           <div className="flex flex-col min-w-0">
-            <h2 className="text-sm font-semibold text-text-primary truncate font-['Outfit']">
-              {documentoActivo ? documentoActivo.filename : 'PetroChat IA'}
+            <h2 className="text-[14px] font-semibold text-text-primary truncate flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-secondary"></span>
+              {documentoActivo ? documentoActivo.filename : 'Generación IA General'}
             </h2>
-            <p className="text-xs text-text-secondary truncate">
-              {documentoActivo ? `${documentoActivo.chunk_count} fragmentos indexados` : 'Sesión general (sin contexto)'}
-            </p>
+            {documentoActivo && (
+              <p className="text-[11px] text-text-secondary truncate mt-0.5 font-medium ml-4">
+                {documentoActivo.chunk_count} fragmentos cargados en la memoria local
+              </p>
+            )}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Toggle Theme */}
+          {/* Toggle Theme - Estilo Premium Pill */}
           <button 
             onClick={toggleTema}
-            className="p-2 rounded-full text-text-secondary hover:text-text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface text-text-secondary hover:text-text-primary hover:border-text-secondary/30 transition-all shadow-sm"
             title={tema === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
           >
-            {tema === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            {tema === 'dark' ? <Sun size={14} className="text-secondary" /> : <Moon size={14} />}
+            <span className="text-[11px] font-medium hidden sm:block">{tema === 'dark' ? 'Dark' : 'Light'}</span>
           </button>
         </div>
       </div>
 
-      {/* Área de mensajes */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 md:px-12 lg:px-24 xl:px-48 space-y-6">
+      {/* Área de mensajes con un gran margen superior e inferior */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-12 md:px-24 lg:px-48 xl:px-64 pt-24 pb-48 space-y-8 scroll-smooth">
         {errorGlobal && (
-          <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-xl mb-4 text-sm flex gap-2 items-center animate-slide-up">
-             <span>⚠️</span> {errorGlobal}
+          <div className="bg-error/10 border border-error/20 text-error px-4 py-3 rounded-xl text-sm flex gap-2 items-center mx-auto max-w-3xl">
+             <span className="text-lg">⚠️</span> 
+             <span className="font-medium">{errorGlobal}</span>
           </div>
         )}
         
         {mensajes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center max-w-lg mx-auto animate-fade-in opacity-80">
-            <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 shadow-xl shadow-secondary/20 rotate-3">
-              <MessageSquare size={36} className="text-white -rotate-3" />
+          <div className="flex flex-col items-center justify-center h-full text-center max-w-lg mx-auto opacity-80 mt-10">
+            <div className="w-24 h-24 rounded-[32px] bg-surface border border-border flex items-center justify-center mb-8 shadow-2xl relative">
+              <div className="absolute inset-0 bg-secondary/10 blur-xl rounded-[32px] -z-10"></div>
+              <MessageSquare size={40} className="text-text-primary" />
             </div>
-            <h3 className="text-2xl font-bold mb-3 font-['Outfit'] tracking-tight text-text-primary">
-              {documentoActivo
-                ? `Explora "${documentoActivo.filename}"`
-                : 'Bienvenido a PetroChat'}
+            <h3 className="text-[28px] font-bold mb-4 font-['Outfit'] tracking-tight text-text-primary">
+              ¿En qué te puedo ayudar?
             </h3>
-            <p className="text-base text-text-secondary leading-relaxed">
+            <p className="text-[15px] text-text-secondary leading-relaxed font-medium px-4">
               {documentoActivo
-                ? 'Escribe tu pregunta abajo y el asistente extraerá la información más relevante del documento.'
-                : 'Sube o selecciona un documento en el panel lateral izquierdo para comenzar a realizar consultas.'}
+                ? 'Escribe tu pregunta abajo y el sistema extraerá las respuestas más prontas del documento seleccionado.'
+                : 'Sube o selecciona un documento en el panel lateral para arrancar una sesión de análisis profundo.'}
             </p>
           </div>
         ) : (
-          <div className="pb-4">
+          <div className="max-w-4xl mx-auto w-full">
             {mensajes.map((mensaje) => (
-              <div key={mensaje.id} className="mb-6">
+              <div key={mensaje.id} className="mb-8">
                 <Message mensaje={mensaje} />
               </div>
             ))}
@@ -182,38 +179,46 @@ export default function Chat({ documentoActivo }) {
         )}
       </div>
 
-      {/* Barra de input Glassmorphic */}
-      <div className="p-4 md:px-12 lg:px-24 xl:px-48 shrink-0 bg-gradient-to-t from-bg via-bg to-transparent pb-6">
-        <form onSubmit={manejarEnvio} className="relative group">
-          <div className={`absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl blur opacity-10 group-focus-within:opacity-25 transition duration-500`}></div>
-          <div className="relative flex items-center gap-2 p-2 bg-surface border border-border shadow-md rounded-2xl">
-            <input
-              ref={refInput}
-              type="text"
-              value={inputTexto}
-              onChange={(e) => setInputTexto(e.target.value)}
-              placeholder={documentoActivo
-                ? 'Pregunta algo sobre el documento...'
-                : '¿En qué te puedo ayudar hoy?'}
-              disabled={enviando}
-              maxLength={2000}
-              className="flex-1 bg-transparent border-none pl-4 py-3 text-[15px] outline-none text-text-primary placeholder:text-text-secondary/60 disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={!inputTexto.trim() || enviando}
-              className="w-12 h-12 flex items-center justify-center rounded-xl bg-secondary text-white disabled:opacity-40 disabled:hover:scale-100 hover:scale-[1.02] active:scale-[0.98] transition-all shrink-0 shadow-sm"
-            >
-              {enviando
-                ? <Loader2 size={20} className="animate-spin" />
-                : <Send size={18} className="translate-x-[1px]" />
-              }
-            </button>
-          </div>
-        </form>
-        <p className="text-center text-[11px] text-text-secondary font-medium mt-3">
-          PetroChat IA puede cometer errores. Considera verificar la información importante.
-        </p>
+      {/* Barra de input Ominprésente (Flotante) */}
+      <div className="absolute bottom-0 left-0 w-full px-4 sm:px-12 md:px-24 lg:px-48 xl:px-64 pb-8 bg-gradient-to-t from-bg via-bg/90 to-transparent pointer-events-none">
+        <div className="max-w-4xl mx-auto w-full pointer-events-auto">
+          <form onSubmit={manejarEnvio} className="relative group">
+            {/* Anillo exterior blur premium */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-secondary-dark/20 to-secondary-light/20 blur opacity-0 group-focus-within:opacity-100 transition duration-1000 -z-10 rounded-3xl"></div>
+            
+            <div className="relative flex items-center gap-2 p-2 bg-surface border border-border shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-[20px]">
+              <input
+                ref={refInput}
+                type="text"
+                value={inputTexto}
+                onChange={(e) => setInputTexto(e.target.value)}
+                placeholder={documentoActivo
+                  ? 'Pregunta algo al documento...'
+                  : 'Empieza a escribir...'}
+                disabled={enviando}
+                maxLength={2000}
+                className="flex-1 bg-transparent border-none pl-5 py-4 text-[15px] outline-none text-text-primary placeholder:text-text-secondary/60 disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={!inputTexto.trim() || enviando}
+                className={`w-12 h-12 flex items-center justify-center rounded-[14px] shrink-0 transition-all ${
+                  !inputTexto.trim() || enviando 
+                    ? 'bg-bg text-text-secondary/50' 
+                    : 'bg-secondary text-white shadow-[0_2px_10px_rgba(245,158,11,0.2)] hover:scale-[1.02] hover:bg-secondary-dark'
+                }`}
+              >
+                {enviando
+                  ? <Loader2 size={20} className="animate-spin text-text-secondary" />
+                  : <Send size={18} className={`${inputTexto.trim() ? 'translate-x-[2px]' : ''}`} />
+                }
+              </button>
+            </div>
+          </form>
+          <p className="text-center text-[11px] text-text-secondary font-medium mt-3">
+            Las alertas automáticas pueden cometer errores. Verifica fuentes sensibles.
+          </p>
+        </div>
       </div>
     </div>
   )
