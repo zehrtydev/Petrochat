@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Copy, Check, Bot } from 'lucide-react'
+import { Copy, Check, Bot, User } from 'lucide-react'
 
 export default function Message({ mensaje }) {
   const esUsuario = mensaje.rol === 'usuario'
@@ -17,68 +17,87 @@ export default function Message({ mensaje }) {
     }
   }
 
-  // Generar timestamp si no existe
   const timestamp = mensaje.timestamp || new Date(mensaje.id).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className={`flex w-full ${esUsuario ? 'justify-end' : 'justify-start'} animate-slide-up group`}>
-      <div className={`flex gap-4 w-full ${esUsuario ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex w-full animate-fade-in ${esUsuario ? 'justify-end' : 'justify-start'}`}>
+      <div className={`flex gap-4 max-w-[85%] ${esUsuario ? 'flex-row-reverse' : 'flex-row'}`}>
         
-        {/* Avatar AI */}
-        {!esUsuario && (
-          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shrink-0 mt-1 shadow-sm">
-            <Bot size={18} />
-          </div>
-        )}
+        {/* Avatar */}
+        <div className={`shrink-0 mt-1 ${esUsuario ? '' : ''}`}>
+          {esUsuario ? (
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shadow-lg shadow-primary/20">
+              <User size={18} className="text-white" />
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-secondary to-secondary-dark flex items-center justify-center shadow-lg shadow-secondary/20">
+              <Bot size={18} className="text-white" />
+            </div>
+          )}
+        </div>
 
-        {/* Contenido principal */}
-        <div className={`flex flex-col min-w-0 ${esUsuario ? 'items-end' : 'items-start w-full'}`}>
+        {/* Content Container */}
+        <div className={`flex flex-col ${esUsuario ? 'items-end' : 'items-start'}`}>
           
-          {/* Metadatos superiores (Ocultos en diseño limpio tipo ChatGPT, pero guardamos el header para contexto opcional o lo obviamos. Mejor sin header para IA pura) */}
-          <div className="flex items-center gap-2 mb-1 px-1">
-            <span className="text-[13px] font-semibold text-text-primary">
-              {esUsuario ? 'Tú' : 'PetroChat'}
-            </span>
-          </div>
-
-          {/* Área de texto/Burbuja */}
-          <div className={`relative px-5 py-3 ${
+          {/* Message Bubble */}
+          <div className={`relative group/message px-5 py-4 ${
             esUsuario 
-              ? 'bg-surface border border-border text-text-primary rounded-[24px] max-w-[85%] sm:max-w-[70%]' 
-              : 'bg-transparent text-text-primary w-full max-w-full'
+              ? 'bg-gradient-to-br from-primary to-primary-dark text-white rounded-2xl rounded-tr-md shadow-lg shadow-primary/20' 
+              : 'bg-surface border border-border/50 rounded-2xl rounded-tl-md shadow-sm'
           }`}>
             {mensaje.escribiendo ? (
-              <div className="flex items-center gap-1.5 h-6 px-1">
+              <div className="flex items-center gap-1.5 h-6">
                 <div className="typing-dot"></div>
                 <div className="typing-dot"></div>
                 <div className="typing-dot"></div>
               </div>
+            ) : esUsuario ? (
+              <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{mensaje.texto}</p>
             ) : (
-               esUsuario ? (
-                <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{mensaje.texto}</p>
-              ) : (
-                <div className="markdown-body text-[15px] max-w-full w-full">
-                  <ReactMarkdown>{mensaje.texto}</ReactMarkdown>
-                </div>
-              )
+              <div className="markdown-body text-[15px] max-w-full w-full prose prose-sm dark:prose-invert">
+                <ReactMarkdown>{mensaje.texto}</ReactMarkdown>
+              </div>
+            )}
+
+            {/* Subtle gradient overlay for user messages */}
+            {esUsuario && (
+              <div className="absolute inset-0 rounded-2xl rounded-tr-md bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
             )}
           </div>
 
-          {/* Acciones Inferiores (Sólo Bot) */}
-          {!esUsuario && !mensaje.escribiendo && (
-             <div className="flex items-center gap-2 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-y-1 group-hover:translate-y-0 duration-200">
-               <button
-                 onClick={manejarCopiar}
-                 className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium text-text-secondary hover:text-text-primary hover:bg-surface border border-transparent hover:border-border transition-colors"
-                 title="Copiar mensaje"
-               >
-                 {copiado ? <Check size={12} className="text-success" /> : <Copy size={12} />}
-                 {copiado ? 'Copiado' : 'Copiar'}
-               </button>
-             </div>
-           )}
-        </div>
+          {/* Actions & Meta */}
+          <div className={`flex items-center gap-2 mt-1.5 ${esUsuario ? 'flex-row-reverse' : 'flex-row'}`}>
+            {/* Timestamp */}
+            <span className="text-[10px] text-text-secondary/50 font-medium">
+              {timestamp}
+            </span>
 
+            {/* Copy Button - Only for Bot */}
+            {!esUsuario && !mensaje.escribiendo && (
+              <button
+                onClick={manejarCopiar}
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium transition-all duration-200 cursor-pointer ${
+                  copiado 
+                    ? 'bg-success/10 text-success border border-success/20' 
+                    : 'text-text-secondary/60 hover:text-text-primary hover:bg-bg border border-transparent'
+                }`}
+                title="Copiar mensaje"
+              >
+                {copiado ? (
+                  <>
+                    <Check size={12} />
+                    <span>Copiado</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={12} />
+                    <span>Copiar</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
